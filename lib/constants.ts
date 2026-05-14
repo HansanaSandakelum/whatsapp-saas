@@ -1,0 +1,139 @@
+export const ROUTES = {
+  HOME: "/",
+  LOGIN: "/login",
+  SIGNUP: "/signup",
+  FORGOT_PASSWORD: "/forgot-password",
+  ONBOARDING: "/embedded-signup",
+  DASHBOARD: "/dashboard",
+  SENDERS: "/senders",
+  TEMPLATES: "/templates",
+  TEMPLATES_NEW: "/templates/new",
+  CAMPAIGNS: "/campaigns",
+  CAMPAIGNS_NEW: "/campaigns/new",
+  CONVERSATIONS: "/conversations",
+  FLOWS: "/flows",
+  CONTACTS: "/contacts",
+  CONTACTS_GROUPS: "/contacts/groups",
+  CONTACTS_OPT_INS: "/contacts/opt-ins",
+  COMPLIANCE: "/compliance",
+  REPORTS: "/reports",
+  BILLING: "/billing",
+  API: "/api-settings",
+  SETTINGS: "/settings",
+  SETTINGS_WORKSPACE: "/settings/workspace",
+  SETTINGS_TEAM: "/settings/team",
+  SETTINGS_NOTIFICATIONS: "/settings/notifications",
+} as const;
+
+export const TEMPLATE_CATEGORIES = [
+  "MARKETING",
+  "UTILITY",
+  "AUTHENTICATION",
+] as const;
+
+export const TEMPLATE_LANGUAGES = [
+  { code: "en", label: "English" },
+  { code: "es", label: "Spanish" },
+  { code: "fr", label: "French" },
+  { code: "de", label: "German" },
+  { code: "pt", label: "Portuguese" },
+  { code: "ar", label: "Arabic" },
+  { code: "hi", label: "Hindi" },
+  { code: "zh", label: "Chinese" },
+  { code: "ja", label: "Japanese" },
+  { code: "ko", label: "Korean" },
+] as const;
+
+export const MESSAGING_TIERS = [
+  { tier: 1, limit: 1000, label: "1K / day" },
+  { tier: 2, limit: 10000, label: "10K / day" },
+  { tier: 3, limit: 100000, label: "100K / day" },
+  { tier: 4, limit: 10000000, label: "Unlimited" },
+] as const;
+
+export const STATUS_COLORS = {
+  approved: "success",
+  pending: "warning",
+  rejected: "danger",
+  draft: "muted",
+  active: "success",
+  paused: "warning",
+  completed: "info",
+  scheduled: "info",
+  failed: "danger",
+  sent: "muted",
+  delivered: "success",
+  read: "info",
+  live: "success",
+  deprecated: "muted",
+  in_review: "warning",
+  published: "success",
+  cancelled: "muted",
+} as const;
+
+export const COUNTRIES = [
+  { code: "US", name: "United States", flag: "🇺🇸", dialCode: "+1" },
+  { code: "GB", name: "United Kingdom", flag: "🇬🇧", dialCode: "+44" },
+  { code: "IN", name: "India", flag: "🇮🇳", dialCode: "+91" },
+  { code: "BR", name: "Brazil", flag: "🇧🇷", dialCode: "+55" },
+  { code: "DE", name: "Germany", flag: "🇩🇪", dialCode: "+49" },
+  { code: "FR", name: "France", flag: "🇫🇷", dialCode: "+33" },
+  { code: "MX", name: "Mexico", flag: "🇲🇽", dialCode: "+52" },
+  { code: "NG", name: "Nigeria", flag: "🇳🇬", dialCode: "+234" },
+  { code: "ZA", name: "South Africa", flag: "🇿🇦", dialCode: "+27" },
+  { code: "AU", name: "Australia", flag: "🇦🇺", dialCode: "+61" },
+  { code: "CA", name: "Canada", flag: "🇨🇦", dialCode: "+1" },
+  { code: "JP", name: "Japan", flag: "🇯🇵", dialCode: "+81" },
+  { code: "SG", name: "Singapore", flag: "🇸🇬", dialCode: "+65" },
+  { code: "AE", name: "UAE", flag: "🇦🇪", dialCode: "+971" },
+  { code: "ID", name: "Indonesia", flag: "🇮🇩", dialCode: "+62" },
+] as const;
+
+export const CONVERSATION_RATE_PER_COUNTRY: Record<string, number> = {
+  US: 0.0147,
+  GB: 0.0319,
+  IN: 0.0088,
+  BR: 0.0625,
+  DE: 0.0361,
+  FR: 0.0349,
+  MX: 0.0349,
+  NG: 0.0496,
+  ZA: 0.0496,
+  AU: 0.0319,
+  CA: 0.0147,
+  JP: 0.0738,
+  SG: 0.0319,
+  AE: 0.0496,
+  ID: 0.0496,
+};
+
+export const PLAN_TIERS = [
+  {
+    id: "starter",
+    name: "Starter",
+    price: 49,
+    conversations: 1000,
+    senders: 1,
+  },
+  {
+    id: "growth",
+    name: "Growth",
+    price: 149,
+    conversations: 10000,
+    senders: 3,
+  },
+  {
+    id: "business",
+    name: "Business",
+    price: 399,
+    conversations: 50000,
+    senders: 10,
+  },
+  {
+    id: "enterprise",
+    name: "Enterprise",
+    price: 999,
+    conversations: 200000,
+    senders: -1,
+  },
+] as const;
