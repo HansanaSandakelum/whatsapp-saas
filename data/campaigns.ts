@@ -9,6 +9,7 @@ let campaigns: Campaign[] = [
     status: "completed",
     templateId: "tmpl-2",
     templateName: "flash_sale_promo",
+    category: "MARKETING",
     senderId: "sender-2",
     senderName: "AcmeCorp Marketing",
     audience: {
@@ -62,6 +63,7 @@ let campaigns: Campaign[] = [
     status: "completed",
     templateId: "tmpl-1",
     templateName: "order_confirmation",
+    category: "UTILITY",
     senderId: "sender-1",
     senderName: "AcmeCorp Support",
     audience: {
@@ -113,6 +115,7 @@ let campaigns: Campaign[] = [
     status: "active",
     templateId: "tmpl-7",
     templateName: "welcome_new_customer",
+    category: "MARKETING",
     senderId: "sender-2",
     senderName: "AcmeCorp Marketing",
     audience: {
@@ -162,6 +165,7 @@ let campaigns: Campaign[] = [
     status: "scheduled",
     templateId: "tmpl-11",
     templateName: "holiday_special_offer",
+    category: "MARKETING",
     senderId: "sender-2",
     senderName: "AcmeCorp Marketing",
     audience: {
@@ -212,6 +216,7 @@ let campaigns: Campaign[] = [
     status: "paused",
     templateId: "tmpl-5",
     templateName: "abandoned_cart_recovery",
+    category: "UTILITY",
     senderId: "sender-2",
     senderName: "AcmeCorp Marketing",
     audience: {

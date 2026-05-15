@@ -252,7 +252,17 @@ function TemplateBubble({ template, variables }: { template: any; variables: Var
             <path fill="currentColor" d="M1.533 2.568 8 11.193V0H2.812C1.042 0 .474 1.156 1.533 2.568z" />
           </svg>
           {template.header?.type === "TEXT" && (
-            <p className="text-[#E9EDEF] text-xs font-bold mb-1">{template.header.text}</p>
+            <p className="text-[#E9EDEF] text-xs font-bold mb-1">
+              {template.header.hasVariable
+                ? (() => {
+                    const hm = variables["header:{{1}}"];
+                    const val = hm?.kind === "literal" ? hm.value
+                      : hm?.kind === "contact_field" ? `[${hm.field}]`
+                      : "{{1}}";
+                    return (template.header.text ?? "").replace("{{1}}", val);
+                  })()
+                : template.header.text}
+            </p>
           )}
           {template.header?.type === "IMAGE" && (
             <div className="w-full h-20 rounded bg-[#2A3942] flex items-center justify-center mb-1.5">

@@ -110,6 +110,29 @@ export default function CreateTemplatePage() {
   // Header
   const [headerType, setHeaderType] = useState<HeaderType>("NONE");
   const [headerText, setHeaderText] = useState("");
+  // Header variable — Meta allows exactly 1 variable ({{1}}) in TEXT headers
+  const [headerHasVar, setHeaderHasVar] = useState(false);
+  const [headerVarExample, setHeaderVarExample] = useState("");
+
+  // Derived: raw header text with {{1}} injected when headerHasVar is true
+  const headerRawText = headerHasVar && !headerText.includes("{{1}}")
+    ? headerText + " {{1}}"
+    : headerText;
+
+  const toggleHeaderVar = () => {
+    if (!headerHasVar) {
+      // Insert {{1}} if not already present
+      if (!headerText.includes("{{1}}")) {
+        setHeaderText((t) => t ? t + " {{1}}" : "{{1}}");
+      }
+      setHeaderHasVar(true);
+    } else {
+      // Remove {{1}} from header text
+      setHeaderText((t) => t.replace(/\s?\{\{1\}\}\s?/g, " ").trim());
+      setHeaderHasVar(false);
+      setHeaderVarExample("");
+    }
+  };
 
   // Body
   const [body, setBody] = useState(
@@ -138,7 +161,13 @@ export default function CreateTemplatePage() {
     issues.push("More than 10 variables may reduce approval chances.");
   if (buttons.length > 3)
     issues.push("WhatsApp allows a maximum of 3 buttons per template.");
-  const isValid = name.trim().length > 0 && body.trim().length > 0;
+  if (headerHasVar && !headerVarExample.trim())
+    issues.push("Header variable requires an example value for Meta review.");
+  const headerCharCount = headerText.length;
+  if (headerType === "TEXT" && headerCharCount > 60)
+    issues.push("Header text (incl. variable) exceeds 60-character limit.");
+  const isValid = name.trim().length > 0 && body.trim().length > 0 &&
+    !(headerHasVar && !headerVarExample.trim());
 
   // --- Handlers ---
   const addButton = () => {
@@ -181,7 +210,26 @@ export default function CreateTemplatePage() {
       toast.error("Template name and body are required.");
       return;
     }
+    if (headerHasVar && !headerVarExample.trim()) {
+      toast.error("Header variable example is required for Meta review.");
+      return;
+    }
     setIsSubmitting(true);
+    // Build payload matching Template shape (would go to API)
+    const _payload = {
+      name, category, language,
+      header: headerType !== "NONE" ? {
+        type: headerType,
+        text: headerType === "TEXT" ? headerText : undefined,
+        hasVariable: headerType === "TEXT" ? headerHasVar : false,
+        exampleValue: headerType === "TEXT" && headerHasVar ? headerVarExample : undefined,
+      } : undefined,
+      body,
+      footer: footer || undefined,
+      buttons,
+      variableCount: varCount(body),
+      headerVariableCount: headerHasVar ? 1 : 0,
+    };
     await new Promise((r) => setTimeout(r, 1200));
     toast.success("Template submitted for Meta review", {
       description: "Approval usually takes up to 24 hours.",
@@ -189,6 +237,7 @@ export default function CreateTemplatePage() {
     setIsSubmitting(false);
     router.push(ROUTES.TEMPLATES);
   };
+
 
   // --- Preview Rendering ---
   const previewBody = body
@@ -330,7 +379,7 @@ export default function CreateTemplatePage() {
           </Card>
 
           {/* Compliance Card */}
-          <Card
+          {/* <Card
             className={cn(
               "shadow-none",
               issues.length > 0
@@ -367,7 +416,7 @@ export default function CreateTemplatePage() {
                 </ul>
               )}
             </CardContent>
-          </Card>
+          </Card> */}
         </aside>
 
         {/* ── Col 2: Editor ── */}
@@ -403,36 +452,46 @@ export default function CreateTemplatePage() {
               </div>
             </CardHeader>
             {headerType !== "NONE" && (
-              <CardContent>
+              <CardContent className="space-y-3">
                 {headerType === "TEXT" ? (
-                  <div className="space-y-1.5">
-                    <Input
-                      placeholder="Header text (max 60 chars)"
-                      value={headerText}
-                      onChange={(e) =>
-                        setHeaderText(e.target.value.slice(0, 60))
-                      }
-                      maxLength={60}
-                    />
-                    <p className="text-[10px] text-muted-foreground text-right">
-                      {headerText.length}/60
-                    </p>
+                  <div className="space-y-3">
+                    <div className="space-y-1.5">
+                      <div className="flex items-center gap-2">
+                        <Input
+                          placeholder="Header text (max 60 chars)"
+                          value={headerText}
+                          onChange={(e) => setHeaderText(e.target.value.slice(0, 60))}
+                          maxLength={60}
+                          className="flex-1"
+                        />
+                        <Button
+                          variant={headerHasVar ? "default" : "outline"}
+                          size="sm"
+                          className="h-9 text-xs shrink-0 gap-1.5"
+                          onClick={toggleHeaderVar}
+                          title={headerHasVar ? "Remove {{1}} from header" : "Add {{1}} variable to header (Meta allows 1)"}
+                        >
+                          <Plus className="w-3 h-3" />
+                          {headerHasVar ? "Variable Added" : "Add Variable"}
+                        </Button>
+                      </div>
+                      <p className="text-[10px] text-muted-foreground text-right">
+                        {headerText.length}/60 chars
+                        {headerHasVar && (
+                          <span className="ml-2 text-primary font-medium">&middot; 1 variable ({"{{1}}"})</span>
+                        )}
+                      </p>
+                    </div>
+                    {/* Example value for Meta review — required when header has {{1}} */}
+                    {headerHasVar && null}
                   </div>
                 ) : (
                   <div className="border-2 border-dashed border-border rounded-xl p-8 text-center bg-muted/20 hover:border-primary/40 transition-colors cursor-pointer">
                     <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                      {headerType === "IMAGE" && (
-                        <ImageIcon className="w-8 h-8" />
-                      )}
-                      {headerType === "VIDEO" && (
-                        <FileVideo className="w-8 h-8" />
-                      )}
-                      {headerType === "DOCUMENT" && (
-                        <FileText className="w-8 h-8" />
-                      )}
-                      <p className="text-sm font-medium">
-                        Click to upload a sample {headerType.toLowerCase()}
-                      </p>
+                      {headerType === "IMAGE" && <ImageIcon className="w-8 h-8" />}
+                      {headerType === "VIDEO" && <FileVideo className="w-8 h-8" />}
+                      {headerType === "DOCUMENT" && <FileText className="w-8 h-8" />}
+                      <p className="text-sm font-medium">Click to upload a sample {headerType.toLowerCase()}</p>
                       <p className="text-xs">Required for Meta review</p>
                     </div>
                   </div>
@@ -730,7 +789,9 @@ export default function CreateTemplatePage() {
                   {/* Header Preview */}
                   {headerType === "TEXT" && headerText && (
                     <p className="text-[#E9EDEF] text-[13px] font-bold mb-1">
-                      {headerText}
+                      {headerHasVar
+                        ? headerText.replace("{{1}}", headerVarExample || "{{1}}")
+                        : headerText}
                     </p>
                   )}
                   {headerType === "IMAGE" && (

@@ -22,9 +22,30 @@ import {
   Variable,
   Phone,
   Zap,
+  ShieldCheck,
+  Tag,
 } from "lucide-react";
 import type { WizardState } from "@/app/(dashboard)/campaigns/new/page";
 import type { Campaign, CampaignAudience, CampaignSchedule } from "@/types/campaign";
+import type { CampaignCategory } from "@/types/campaign";
+
+const CATEGORY_BADGE: Record<CampaignCategory, { label: string; className: string; icon: React.ReactNode }> = {
+  MARKETING: {
+    label: "Marketing",
+    className: "bg-violet-500/10 text-violet-600 border border-violet-500/20",
+    icon: <Zap className="w-3 h-3" />,
+  },
+  UTILITY: {
+    label: "Utility",
+    className: "bg-blue-500/10 text-blue-600 border border-blue-500/20",
+    icon: <MessageSquare className="w-3 h-3" />,
+  },
+  AUTHENTICATION: {
+    label: "Authentication",
+    className: "bg-orange-500/10 text-orange-600 border border-orange-500/20",
+    icon: <ShieldCheck className="w-3 h-3" />,
+  },
+};
 
 interface Props {
   state: WizardState;
@@ -75,6 +96,9 @@ export function Step5Review({ state, onBack }: Props) {
   };
 
   const variableEntries = Object.entries(state.step3);
+  // Split into header vars (key starts with "header:") and body vars
+  const headerVarEntries = variableEntries.filter(([k]) => k.startsWith("header:"));
+  const bodyVarEntries = variableEntries.filter(([k]) => !k.startsWith("header:"));
 
   const CONTACT_FIELD_LABELS: Record<string, string> = {
     first_name: "First Name",
@@ -130,7 +154,8 @@ export function Step5Review({ state, onBack }: Props) {
       ],
       totalCost: audience.estimatedReach * 0.0147,
       placeholders: variableEntries.map(([v, s]) => ({
-        variable: v,
+        variable: v.startsWith("header:") ? v.replace("header:", "") : v,
+        section: v.startsWith("header:") ? "header" : "body",
         contactField: s.kind === "contact_field" ? s.field : null,
         defaultValue: s.kind === "literal" ? s.value : s.kind === "system" ? `{{system:${s.name}}}` : s.kind === "campaign_field" ? `{{campaign:${s.field}}}` : "",
       })),
@@ -190,6 +215,16 @@ export function Step5Review({ state, onBack }: Props) {
         {/* Basics */}
         <ReviewSection title="Campaign Basics" icon={<MessageSquare className="w-3.5 h-3.5" />}>
           <Row label="Name">{state.step1.name}</Row>
+          {state.step1.category && (() => {
+            const badge = CATEGORY_BADGE[state.step1.category];
+            return (
+              <Row label="Category">
+                <span className={cn("inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full", badge.className)}>
+                  {badge.icon} {badge.label}
+                </span>
+              </Row>
+            );
+          })()}
           <Row label="Sender">
             <span className="flex items-center gap-1.5 truncate">
               <Phone className="w-3 h-3" />
@@ -229,20 +264,47 @@ export function Step5Review({ state, onBack }: Props) {
           {variableEntries.length === 0 ? (
             <p className="text-[11px] text-muted-foreground">No variables.</p>
           ) : (
-            <div className="space-y-1 max-h-[100px] overflow-y-auto pr-1">
-              {variableEntries.map(([variable, source]) => (
-                <Row key={variable} label={variable}>
-                  <span className="truncate">
-                    {source.kind === "contact_field"
-                      ? `${CONTACT_FIELD_LABELS[source.field] ?? source.field}`
-                      : source.kind === "literal"
-                      ? `"${source.value}"`
-                      : source.kind === "system"
-                      ? `System: ${source.name}`
-                      : `Campaign: ${source.field}`}
-                  </span>
-                </Row>
-              ))}
+            <div className="space-y-3">
+              {/* Header variables */}
+              {headerVarEntries.length > 0 && (
+                <div className="space-y-1">
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Header</p>
+                  {headerVarEntries.map(([key, source]) => (
+                    <Row key={key} label="{{1}}">
+                      <span className="truncate">
+                        {source.kind === "contact_field"
+                          ? CONTACT_FIELD_LABELS[source.field] ?? source.field
+                          : source.kind === "literal"
+                          ? `"${source.value}"`
+                          : "—"}
+                      </span>
+                    </Row>
+                  ))}
+                </div>
+              )}
+              {/* Body variables */}
+              {bodyVarEntries.length > 0 && (
+                <div className="space-y-1">
+                  {headerVarEntries.length > 0 && (
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Body</p>
+                  )}
+                  <div className="max-h-[100px] overflow-y-auto pr-1 space-y-1">
+                    {bodyVarEntries.map(([variable, source]) => (
+                      <Row key={variable} label={variable}>
+                        <span className="truncate">
+                          {source.kind === "contact_field"
+                            ? CONTACT_FIELD_LABELS[source.field] ?? source.field
+                            : source.kind === "literal"
+                            ? `"${source.value}"`
+                            : source.kind === "system"
+                            ? `System: ${source.name}`
+                            : `Campaign: ${source.field}`}
+                        </span>
+                      </Row>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </ReviewSection>

@@ -14,8 +14,10 @@ export interface TemplateButton {
 
 export interface TemplateHeader {
   type: TemplateHeaderType;
-  text?: string;
+  text?: string;           // raw text, may include {{1}}
   mediaUrl?: string;
+  hasVariable?: boolean;   // true when header text contains {{1}}
+  exampleValue?: string;   // sample value for Meta review (required if hasVariable)
 }
 
 export interface Template {
@@ -28,7 +30,8 @@ export interface Template {
   body: string;
   footer?: string;
   buttons: TemplateButton[];
-  variableCount: number;
+  variableCount: number;       // body variable count
+  headerVariableCount: number; // 0 or 1 (Meta allows max 1 in TEXT header)
   senderId: string;
   senderName: string;
   metaTemplateId?: string;
