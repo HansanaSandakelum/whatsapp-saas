@@ -15,7 +15,6 @@ import {
   Loader2,
   Users,
   FileUp,
-  ClipboardList,
   CheckCircle2,
   Hash,
 } from "lucide-react";
@@ -29,19 +28,16 @@ interface Props {
   onBack: () => void;
 }
 
-type AudienceMode = "GROUP" | "CSV" | "PASTED";
+type AudienceMode = "GROUP" | "CSV";
 
 export function Step2Audience({ value, onChange, onNext, onBack }: Props) {
   const [mode, setMode] = useState<AudienceMode>(
-    value?.mode === "GROUP" || value?.mode === "CSV" || value?.mode === "PASTED"
+    value?.mode === "GROUP" || value?.mode === "CSV"
       ? value.mode
       : "GROUP",
   );
   const [selectedGroups, setSelectedGroups] = useState<string[]>(
     value?.mode === "GROUP" ? value.groupIds : [],
-  );
-  const [pastedNumbers, setPastedNumbers] = useState(
-    value?.mode === "PASTED" ? value.phoneNumbers.join("\n") : "",
   );
 
   const { data: groups, isLoading } = useQuery({
@@ -58,20 +54,13 @@ export function Step2Audience({ value, onChange, onNext, onBack }: Props) {
     .filter((g) => selectedGroups.includes(g.id))
     .reduce((sum, g) => sum + g.memberCount, 0);
 
-  const parsedNumbers = pastedNumbers
-    .split(/[\n,;]+/)
-    .map((s) => s.trim())
-    .filter((s) => s.length > 0);
-
   const canProceed =
     (mode === "GROUP" && selectedGroups.length > 0) ||
-    (mode === "PASTED" && parsedNumbers.length > 0) ||
     mode === "CSV";
 
   const handleNext = () => {
     let state: Step2State;
     if (mode === "GROUP") state = { mode: "GROUP", groupIds: selectedGroups };
-    else if (mode === "PASTED") state = { mode: "PASTED", phoneNumbers: parsedNumbers };
     else state = { mode: "CSV", uploadId: "mock-upload-id" };
     onChange(state);
     onNext();
@@ -80,7 +69,6 @@ export function Step2Audience({ value, onChange, onNext, onBack }: Props) {
   const MODES: { id: AudienceMode; label: string; desc: string; icon: React.ReactNode }[] = [
     { id: "GROUP", label: "Contact Groups", desc: "Select from saved groups", icon: <Users className="w-4 h-4" /> },
     { id: "CSV", label: "Upload CSV", desc: "Import a phone number list", icon: <FileUp className="w-4 h-4" /> },
-    { id: "PASTED", label: "Paste Numbers", desc: "Enter phone numbers manually", icon: <ClipboardList className="w-4 h-4" /> },
   ];
 
   return (
@@ -93,7 +81,7 @@ export function Step2Audience({ value, onChange, onNext, onBack }: Props) {
       </div>
 
       {/* Mode selector */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 gap-3">
         {MODES.map((m) => (
           <button
             key={m.id}
@@ -164,35 +152,12 @@ export function Step2Audience({ value, onChange, onNext, onBack }: Props) {
         </div>
       )}
 
-      {/* PASTED mode */}
-      {mode === "PASTED" && (
-        <div className="space-y-3 p-5 rounded-xl border border-border bg-card">
-          <div className="flex items-center justify-between">
-            <Label>Phone Numbers</Label>
-            {parsedNumbers.length > 0 && (
-              <span className="text-xs text-primary font-medium">{parsedNumbers.length} numbers</span>
-            )}
-          </div>
-          <Textarea
-            placeholder={"+14155552671\n+919876543210\n+447700900123"}
-            rows={8}
-            value={pastedNumbers}
-            onChange={(e) => setPastedNumbers(e.target.value)}
-            className="font-mono text-sm"
-          />
-          <p className="text-xs text-muted-foreground">
-            One number per line, or separated by commas/semicolons. Include country code (e.g. +1…)
-          </p>
-        </div>
-      )}
-
       {/* Audience summary */}
       {canProceed && (
         <div className="flex items-center gap-3 p-3 rounded-lg bg-success/8 border border-success/20 text-success text-sm">
           <CheckCircle2 className="w-4 h-4 shrink-0" />
           <span>
             {mode === "GROUP" && `${selectedGroups.length} group${selectedGroups.length > 1 ? "s" : ""} — ~${formatNumber(totalFromGroups)} contacts`}
-            {mode === "PASTED" && `${parsedNumbers.length} phone number${parsedNumbers.length > 1 ? "s" : ""} entered`}
             {mode === "CSV" && "CSV file ready to be processed"}
           </span>
         </div>

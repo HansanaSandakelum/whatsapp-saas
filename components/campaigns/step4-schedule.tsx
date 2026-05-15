@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { ArrowRight, ArrowLeft, Zap, Calendar, Timer, Clock, Info } from "lucide-react";
+import { ArrowRight, ArrowLeft, Zap, Calendar, Clock, Info } from "lucide-react";
 import type { Step4State } from "@/types/campaign";
 
 interface Props {
@@ -22,7 +22,7 @@ interface Props {
   onBack: () => void;
 }
 
-type Mode = "SEND_NOW" | "SCHEDULED" | "DRIP";
+type Mode = "SEND_NOW" | "SCHEDULED";
 
 const TIMEZONES = [
   "America/New_York",
@@ -39,15 +39,15 @@ const TIMEZONES = [
 ];
 
 export function Step4Schedule({ value, onChange, onNext, onBack }: Props) {
-  const [mode, setMode] = useState<Mode>(value.mode);
+  // Narrowing for initialization
+  const isScheduled = value.mode === "SCHEDULED";
+  
+  const [mode, setMode] = useState<Mode>(isScheduled ? "SCHEDULED" : "SEND_NOW");
   const [scheduledAt, setScheduledAt] = useState(
-    value.mode === "SCHEDULED" ? value.scheduledAt.slice(0, 16) : "",
+    isScheduled ? value.scheduledAt.slice(0, 16) : "",
   );
   const [timezone, setTimezone] = useState(
-    (value.mode === "SCHEDULED" || value.mode === "DRIP") ? value.timezone : "America/New_York",
-  );
-  const [ratePerMin, setRatePerMin] = useState(
-    value.mode === "DRIP" ? value.ratePerMin : 100,
+    isScheduled ? value.timezone : "America/New_York",
   );
   const [quietHoursEnabled, setQuietHoursEnabled] = useState(
     !!value.quietHours,
@@ -57,8 +57,7 @@ export function Step4Schedule({ value, onChange, onNext, onBack }: Props) {
 
   const canProceed =
     mode === "SEND_NOW" ||
-    (mode === "SCHEDULED" && !!scheduledAt) ||
-    (mode === "DRIP" && !!scheduledAt && ratePerMin > 0);
+    (mode === "SCHEDULED" && !!scheduledAt);
 
   const handleNext = () => {
     const quietHours = quietHoursEnabled
@@ -68,18 +67,10 @@ export function Step4Schedule({ value, onChange, onNext, onBack }: Props) {
     let state: Step4State;
     if (mode === "SEND_NOW") {
       state = { mode: "SEND_NOW", quietHours };
-    } else if (mode === "SCHEDULED") {
+    } else {
       state = {
         mode: "SCHEDULED",
         scheduledAt: new Date(scheduledAt).toISOString(),
-        timezone,
-        quietHours,
-      };
-    } else {
-      state = {
-        mode: "DRIP",
-        startAt: new Date(scheduledAt).toISOString(),
-        ratePerMin,
         timezone,
         quietHours,
       };
@@ -91,7 +82,6 @@ export function Step4Schedule({ value, onChange, onNext, onBack }: Props) {
   const MODES: { id: Mode; label: string; desc: string; icon: React.ReactNode }[] = [
     { id: "SEND_NOW", label: "Send Immediately", desc: "Deploy right after confirmation", icon: <Zap className="w-4 h-4" /> },
     { id: "SCHEDULED", label: "Schedule", desc: "Pick a date and time", icon: <Calendar className="w-4 h-4" /> },
-    { id: "DRIP", label: "Drip (Rate Limit)", desc: "Spread delivery over time", icon: <Timer className="w-4 h-4" /> },
   ];
 
   return (
@@ -104,7 +94,7 @@ export function Step4Schedule({ value, onChange, onNext, onBack }: Props) {
       </div>
 
       {/* Mode cards */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 gap-3">
         {MODES.map((m) => (
           <button
             key={m.id}
@@ -138,10 +128,10 @@ export function Step4Schedule({ value, onChange, onNext, onBack }: Props) {
       )}
 
       {/* SCHEDULED fields */}
-      {(mode === "SCHEDULED" || mode === "DRIP") && (
+      {mode === "SCHEDULED" && (
         <div className="space-y-4 p-5 rounded-xl border border-border bg-card">
           <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-            {mode === "DRIP" ? "Drip Start Time" : "Scheduled Time"}
+            Scheduled Time
           </h3>
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2 space-y-2">
@@ -168,24 +158,6 @@ export function Step4Schedule({ value, onChange, onNext, onBack }: Props) {
               </Select>
             </div>
           </div>
-
-          {/* Drip rate */}
-          {mode === "DRIP" && (
-            <div className="space-y-2 pt-2 border-t border-border">
-              <Label htmlFor="drip-rate">Messages per minute</Label>
-              <Input
-                id="drip-rate"
-                type="number"
-                min={1}
-                max={500}
-                value={ratePerMin}
-                onChange={(e) => setRatePerMin(Number(e.target.value))}
-              />
-              <p className="text-xs text-muted-foreground">
-                Recommended: 50–200/min. Higher rates may trigger Meta throttling.
-              </p>
-            </div>
-          )}
         </div>
       )}
 

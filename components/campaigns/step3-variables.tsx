@@ -235,7 +235,7 @@ export function Step3Variables({ templateId, value, onChange, onNext, onBack }: 
       )}
 
       {/* Live preview */}
-      {template && variables.length > 0 && (
+      {/* {template && variables.length > 0 && (
         <div className="p-4 rounded-xl border border-border bg-card space-y-2">
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Message Preview</p>
           {template.header?.text && (
@@ -249,7 +249,7 @@ export function Step3Variables({ templateId, value, onChange, onNext, onBack }: 
             <p className="text-xs text-muted-foreground border-t pt-2 mt-2">{template.footer}</p>
           )}
         </div>
-      )}
+      )} */}
 
       <div className="flex justify-between pt-2">
         <Button variant="outline" onClick={onBack} className="gap-2">

@@ -54,8 +54,11 @@ export function Step1Basics({ value, onChange, onNext }: Props) {
   const selectedTemplate = allTemplates?.find((t) => t.id === form.templateId);
   const selectedSender = senders?.find((s) => s.id === form.senderId);
 
-  const set = <K extends keyof Step1State>(k: K, v: Step1State[K]) =>
-    setForm((p) => ({ ...p, [k]: v }));
+  const set = <K extends keyof Step1State>(k: K, v: Step1State[K]) => {
+    const next = { ...form, [k]: v };
+    setForm(next);
+    onChange(next);
+  };
 
   const canProceed = form.name.trim().length >= 3 && form.senderId && form.templateId;
 
@@ -173,22 +176,7 @@ export function Step1Basics({ value, onChange, onNext }: Props) {
         )}
       </div>
 
-      {/* Selected template preview */}
-      {selectedTemplate && (
-        <div className="p-4 rounded-xl border border-primary/20 bg-primary/3 space-y-2">
-          <p className="text-xs font-semibold text-primary uppercase tracking-wide">Template Preview</p>
-          {selectedTemplate.header?.text && (
-            <p className="text-sm font-semibold">{selectedTemplate.header.text}</p>
-          )}
-          <p className="text-sm text-foreground leading-relaxed">{selectedTemplate.body}</p>
-          {selectedTemplate.footer && (
-            <p className="text-xs text-muted-foreground">{selectedTemplate.footer}</p>
-          )}
-          <p className="text-xs text-muted-foreground">
-            {selectedTemplate.variableCount} variable{selectedTemplate.variableCount !== 1 ? "s" : ""} · {selectedTemplate.language.toUpperCase()} · {selectedTemplate.category}
-          </p>
-        </div>
-      )}
+
 
       {/* Footer */}
       <div className="flex justify-end pt-2">

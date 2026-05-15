@@ -22,7 +22,6 @@ import {
   Variable,
   Phone,
   Zap,
-  Timer,
 } from "lucide-react";
 import type { WizardState } from "@/app/(dashboard)/campaigns/new/page";
 import type { Campaign, CampaignAudience, CampaignSchedule } from "@/types/campaign";
@@ -60,23 +59,19 @@ export function Step5Review({ state, onBack }: Props) {
       : [];
 
   const audienceSummary = () => {
-    if (!state.step2) return "No audience";
-    if (state.step2.mode === "GROUP") {
+    const s2 = state.step2;
+    if (!s2) return "No audience";
+    if (s2.mode === "GROUP") {
       const total = selectedGroups.reduce((s, g) => s + g.memberCount, 0);
       return `${selectedGroups.length} group${selectedGroups.length !== 1 ? "s" : ""} · ~${formatNumber(total)} contacts`;
     }
-    if (state.step2.mode === "PASTED") return `${state.step2.phoneNumbers.length} phone numbers`;
     return "CSV upload";
   };
 
   const scheduleSummary = () => {
     const s = state.step4;
     if (s.mode === "SEND_NOW") return "Send immediately";
-    if (s.mode === "SCHEDULED")
-      return `Scheduled: ${new Date(s.scheduledAt).toLocaleString()} (${s.timezone})`;
-    if (s.mode === "DRIP")
-      return `Drip from ${new Date(s.startAt).toLocaleString()} · ${s.ratePerMin} msg/min`;
-    return "";
+    return `Scheduled: ${new Date(s.scheduledAt).toLocaleString()} (${s.timezone})`;
   };
 
   const variableEntries = Object.entries(state.step3);
@@ -104,22 +99,20 @@ export function Step5Review({ state, onBack }: Props) {
       audience.groupIds = step2.groupIds;
       audience.totalRecipients = selectedGroups.reduce((s, g) => s + g.memberCount, 0);
       audience.estimatedReach = Math.floor(audience.totalRecipients * 0.98);
-    } else if (step2?.mode === "PASTED") {
-      audience.phoneNumbers = step2.phoneNumbers;
-      audience.totalRecipients = step2.phoneNumbers.length;
-      audience.estimatedReach = audience.totalRecipients;
+    } else if (step2?.mode === "CSV") {
+      audience.totalRecipients = 0; // Handled after parsing
+      audience.estimatedReach = 0;
     }
 
     // Construct schedule
     const step4 = state.step4;
     const schedule: CampaignSchedule = {
-      type: step4.mode === "SEND_NOW" ? "send_now" : step4.mode === "SCHEDULED" ? "scheduled" : "drip",
-      scheduledAt: step4.mode === "SCHEDULED" ? step4.scheduledAt : step4.mode === "DRIP" ? step4.startAt : undefined,
-      timezone: step4.mode !== "SEND_NOW" ? step4.timezone : undefined,
+      type: step4.mode === "SEND_NOW" ? "send_now" : "scheduled",
+      scheduledAt: step4.mode === "SCHEDULED" ? step4.scheduledAt : undefined,
+      timezone: step4.mode === "SCHEDULED" ? step4.timezone : undefined,
       quietHoursEnabled: !!step4.quietHours,
       quietHoursStart: step4.quietHours?.start,
       quietHoursEnd: step4.quietHours?.end,
-      ratePerMin: step4.mode === "DRIP" ? step4.ratePerMin : undefined,
     };
 
     // Construct full campaign
@@ -260,9 +253,9 @@ export function Step5Review({ state, onBack }: Props) {
             <span className="flex items-center gap-1.5 truncate">
               {state.step4.mode === "SEND_NOW" && <Zap className="w-3 h-3 text-amber-500" />}
               {state.step4.mode === "SCHEDULED" && <Calendar className="w-3 h-3 text-blue-500" />}
-              {state.step4.mode === "DRIP" && <Timer className="w-3 h-3 text-violet-500" />}
+              {/* {state.step4.mode === "DRIP" && <Timer className="w-3 h-3 text-violet-500" />} */}
               {scheduleSummary()}
-            </span>
+            </span> 
           </Row>
           {state.step4.quietHours && (
             <Row label="Quiet Hours">

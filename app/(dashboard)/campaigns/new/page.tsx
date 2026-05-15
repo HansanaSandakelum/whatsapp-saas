@@ -39,7 +39,6 @@ const DEFAULT_STATE: WizardState = {
 export default function NewCampaignPage() {
   const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1);
   const [state, setState] = useState<WizardState>(DEFAULT_STATE);
-  const [showPreview, setShowPreview] = useState(false);
 
   const { data: template } = useQuery({
     queryKey: ["template", state.step1.templateId],
@@ -81,26 +80,8 @@ export default function NewCampaignPage() {
           </div>
         </div>
 
-        {/* Template Preview Trigger */}
-        {template && (
-          <div className="hidden lg:flex items-center gap-4">
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted border border-border">
-              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Template:</span>
-              <span className="text-xs font-semibold">{template.name}</span>
-              <div className="w-px h-3 bg-border mx-1" />
-              <button 
-                onClick={() => setShowPreview(!showPreview)}
-                className="text-xs text-primary font-medium hover:underline flex items-center gap-1"
-              >
-                <Smartphone className="w-3 h-3" />
-                {showPreview ? "Hide Preview" : "Show Preview"}
-              </button>
-            </div>
-          </div>
-        )}
-
         {/* Progress bar */}
-        <div className="hidden sm:flex items-center gap-2 w-48">
+        <div className="hidden sm:flex items-center gap-2 w-64">
           <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
             <div
               className="h-full bg-primary rounded-full transition-all duration-500"
@@ -113,16 +94,9 @@ export default function NewCampaignPage() {
         </div>
       </header>
 
-      <div className="flex-1 flex overflow-hidden relative">
-        {/* ── Floating Template Preview ── */}
-        {template && showPreview && (
-          <div className="absolute right-6 top-6 z-30 animate-in fade-in slide-in-from-right-4 duration-300">
-            <TemplateBubble template={template} variables={state.step3} />
-          </div>
-        )}
-
+      <div className="flex-1 flex overflow-hidden">
         {/* ── Sidebar stepper ── */}
-        <aside className="w-56 border-r bg-background p-5 flex flex-col gap-1 hidden md:flex">
+        <aside className="w-56 border-r bg-background p-5 flex flex-col gap-1 hidden md:flex shrink-0">
           {STEPS.map((s, i) => {
             const done = step > s.id;
             const active = step === s.id;
@@ -164,7 +138,7 @@ export default function NewCampaignPage() {
         </aside>
 
         {/* ── Main content ── */}
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto min-w-0">
           <div className="max-w-3xl mx-auto px-4 py-8">
             {step === 1 && (
               <Step1Basics
@@ -201,6 +175,39 @@ export default function NewCampaignPage() {
             {step === 5 && <Step5Review state={state} onBack={back} />}
           </div>
         </main>
+
+        {/* ── Right sidebar: Template Preview ── */}
+        <aside className="w-72 xl:w-80 border-l bg-muted/10 p-4 xl:p-5 hidden lg:flex flex-col items-center shrink-0 overflow-y-auto">
+          <div className="sticky top-0 w-full flex flex-col items-center">
+            <div className="flex items-center gap-2 mb-4 self-start">
+              <Smartphone className="w-4 h-4 text-muted-foreground" />
+              <span className="text-sm font-medium text-muted-foreground">
+                Template Preview
+              </span>
+            </div>
+
+            {state.step1.templateId ? (
+              template ? (
+                <TemplateBubble template={template} variables={state.step3} />
+              ) : (
+                <div className="w-full aspect-[9/16] rounded-[2rem] border border-border bg-background/50 flex flex-col items-center justify-center p-6 text-center gap-3 animate-pulse">
+                  <Smartphone className="w-6 h-6 text-muted-foreground/20" />
+                  <p className="text-[10px] text-muted-foreground/40 font-medium italic">Loading template...</p>
+                </div>
+              )
+            ) : (
+              <div className="w-full aspect-[9/16] rounded-[2rem] border-2 border-dashed border-muted-foreground/20 flex flex-col items-center justify-center p-6 text-center gap-3">
+                <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
+                  <Smartphone className="w-6 h-6 text-muted-foreground/40" />
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground">No template selected</p>
+                  <p className="text-[10px] text-muted-foreground/60 mt-1">Select a template in step 1 to see the preview here.</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </aside>
       </div>
     </div>
   );
