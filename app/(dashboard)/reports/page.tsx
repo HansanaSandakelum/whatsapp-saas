@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { getCampaigns } from "@/data/campaigns";
 import { cn } from "@/lib/utils";
@@ -18,6 +19,7 @@ import {
   Loader2,
   TrendingUp,
   DollarSign,
+  Eye,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,6 +45,8 @@ export default function CampaignReportsPage() {
   const [activeTab, setActiveTab] = useState("ALL");
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const [sortField, setSortField] = useState<"sent" | "deliveryRate" | "readRate" | "replyRate" | "createdAt" | "cost">("createdAt");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
 
@@ -68,6 +72,15 @@ export default function CampaignReportsPage() {
       result = result.filter(c => c.status === statusFilter);
     }
 
+    if (dateFrom) {
+      const from = new Date(dateFrom).getTime();
+      result = result.filter(c => new Date(c.createdAt).getTime() >= from);
+    }
+    if (dateTo) {
+      const to = new Date(dateTo).getTime();
+      result = result.filter(c => new Date(c.createdAt).getTime() <= to + 86400000);
+    }
+
     return result.sort((a, b) => {
       let av: number;
       let bv: number;
@@ -85,7 +98,7 @@ export default function CampaignReportsPage() {
       
       return sortDir === "desc" ? bv - av : av - bv;
     });
-  }, [campaigns, search, activeTab, statusFilter, sortField, sortDir]);
+  }, [campaigns, search, activeTab, statusFilter, dateFrom, dateTo, sortField, sortDir]);
 
   const toggleSort = (field: typeof sortField) => {
     if (field === sortField) setSortDir((d) => (d === "desc" ? "asc" : "desc"));
@@ -139,7 +152,7 @@ export default function CampaignReportsPage() {
         ) : (
           <>
             {/* Top Aggregated Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="p-5 rounded-xl border border-border bg-card flex items-center justify-between">
                 <div>
                   <p className="text-xs text-muted-foreground font-medium">Total Sent (Filtered)</p>
@@ -167,20 +180,38 @@ export default function CampaignReportsPage() {
                   <DollarSign className="w-5 h-5" />
                 </div>
               </div>
-            </div>
+            </div> */}
 
             {/* Controls */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="relative w-full sm:w-72">
-                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input 
-                  placeholder="Search campaigns or templates..." 
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="pl-9 h-9 text-sm"
-                />
+            <div className="flex flex-col xl:flex-row items-center justify-between gap-4">
+              <div className="flex flex-col sm:flex-row items-center gap-3 w-full xl:w-auto">
+                <div className="relative w-full sm:w-72">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input 
+                    placeholder="Search campaigns or templates..." 
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="pl-9 h-9 text-sm"
+                  />
+                </div>
+                <div className="flex items-center gap-2 w-full sm:w-auto bg-card border border-border rounded-lg px-2">
+                  <Calendar className="w-4 h-4 text-muted-foreground shrink-0" />
+                  <Input 
+                    type="date" 
+                    value={dateFrom}
+                    onChange={(e) => setDateFrom(e.target.value)}
+                    className="h-9 text-xs w-[120px] border-0 shadow-none focus-visible:ring-0 px-1"
+                  />
+                  <span className="text-muted-foreground text-xs px-1">to</span>
+                  <Input 
+                    type="date" 
+                    value={dateTo}
+                    onChange={(e) => setDateTo(e.target.value)}
+                    className="h-9 text-xs w-[120px] border-0 shadow-none focus-visible:ring-0 px-1"
+                  />
+                </div>
               </div>
-              <div className="flex items-center gap-2 w-full sm:w-auto">
+              <div className="flex items-center gap-2 w-full xl:w-auto justify-end">
                 <div className="flex items-center border border-border rounded-lg overflow-hidden bg-muted/30">
                   {["all", "completed", "active", "scheduled"].map((s) => (
                     <button
@@ -207,10 +238,10 @@ export default function CampaignReportsPage() {
             <div className="rounded-xl border border-border bg-card overflow-x-auto">
               <div className="min-w-[1000px]">
                 {/* Table header */}
-                <div className="grid grid-cols-[2fr_100px_120px_160px_80px_80px_80px_80px_60px] gap-3 px-5 py-3 bg-muted/20 border-b border-border text-[10px] font-bold uppercase tracking-wider text-muted-foreground items-center">
+                <div className="grid grid-cols-[2fr_100px_120px_160px_100px_100px_100px_80px_60px] gap-3 px-5 py-3 bg-muted/20 border-b border-border text-[10px] font-bold uppercase tracking-wider text-muted-foreground items-center">
                   <div>Campaign Info</div>
                   <div className="text-center">Status</div>
-                  <SortHeader label="Date" field="createdAt" current={sortField} dir={sortDir} onSort={toggleSort} />
+                  <SortHeader label="Date & Time" field="createdAt" current={sortField} dir={sortDir} onSort={toggleSort} />
                   <SortHeader label="Sent" field="sent" current={sortField} dir={sortDir} onSort={toggleSort} />
                   <SortHeader label="Delivery" field="deliveryRate" current={sortField} dir={sortDir} onSort={toggleSort} />
                   <SortHeader label="Read" field="readRate" current={sortField} dir={sortDir} onSort={toggleSort} />
@@ -230,7 +261,7 @@ export default function CampaignReportsPage() {
                     </div>
                   ) : (
                     sortedAndFiltered.map((c) => (
-                      <div key={c.id} className="grid grid-cols-[2fr_100px_120px_160px_80px_80px_80px_80px_60px] gap-3 px-5 py-4 items-center hover:bg-muted/20 transition-colors">
+                      <div key={c.id} className="grid grid-cols-[2fr_100px_120px_160px_100px_100px_100px_80px_60px] gap-3 px-5 py-4 items-center hover:bg-muted/20 transition-colors">
                         <div className="min-w-0 pr-2">
                           <p className="text-sm font-semibold truncate text-foreground">{c.name}</p>
                           <div className="flex items-center gap-2 mt-1">
@@ -247,9 +278,12 @@ export default function CampaignReportsPage() {
                             {c.status}
                           </span>
                         </div>
-                        <div className="text-right">
-                          <span className="text-xs text-muted-foreground">
+                        <div className="text-right flex flex-col items-end">
+                          <span className="text-xs text-foreground font-medium">
                             {new Date(c.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                          </span>
+                          <span className="text-[10px] text-muted-foreground">
+                            {new Date(c.createdAt).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
                           </span>
                         </div>
                         
@@ -266,9 +300,9 @@ export default function CampaignReportsPage() {
                         </div>
 
                         {/* Rates */}
-                        <RateCell value={c.metrics.deliveryRate} thresholds={[95, 90]} />
-                        <RateCell value={c.metrics.readRate} thresholds={[75, 55]} />
-                        <RateCell value={c.metrics.replyRate} thresholds={[10, 5]} />
+                        <RateCell rate={c.metrics.deliveryRate} count={c.metrics.delivered} thresholds={[95, 90]} />
+                        <RateCell rate={c.metrics.readRate} count={c.metrics.read} thresholds={[75, 55]} />
+                        <RateCell rate={c.metrics.replyRate} count={c.metrics.replied} thresholds={[10, 5]} />
                         
                         {/* Cost */}
                         <div className="text-right">
@@ -277,9 +311,11 @@ export default function CampaignReportsPage() {
 
                         {/* Actions */}
                         <div className="flex justify-end">
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground">
-                            <MoreHorizontal className="w-4 h-4" />
-                          </Button>
+                          <Link href={`/reports/${c.id}`}>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-primary hover:bg-primary/10">
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                          </Link>
                         </div>
                       </div>
                     ))
@@ -328,19 +364,24 @@ function SortHeader({
 }
 
 function RateCell({
-  value,
+  rate,
+  count,
   thresholds,
 }: {
-  value: number;
+  rate: number;
+  count?: number;
   thresholds: [number, number];
 }) {
   let color = "text-foreground";
-  if (value !== undefined && thresholds) {
-    color = value >= thresholds[0] ? "text-emerald-600" : value >= thresholds[1] ? "text-amber-600" : "text-red-500";
+  if (rate !== undefined && thresholds) {
+    color = rate >= thresholds[0] ? "text-emerald-600" : rate >= thresholds[1] ? "text-amber-600" : "text-red-500";
   }
   return (
-    <div className="text-right">
-      <span className={cn("text-xs font-semibold tabular-nums", color)}>{pct(value || 0)}</span>
+    <div className="text-right flex flex-col items-end">
+      {count !== undefined && (
+        <span className="text-xs font-medium tabular-nums">{formatNumber(count)}</span>
+      )}
+      <span className={cn("text-[10px] font-semibold tabular-nums", color)}>{pct(rate || 0)}</span>
     </div>
   );
 }

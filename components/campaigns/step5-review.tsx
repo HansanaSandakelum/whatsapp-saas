@@ -137,6 +137,7 @@ export function Step5Review({ state, onBack }: Props) {
       quietHoursEnabled: !!step4.quietHours,
       quietHoursStart: step4.quietHours?.start,
       quietHoursEnd: step4.quietHours?.end,
+      endDate: step4.endDate,
     };
 
     // Construct full campaign
@@ -319,6 +320,14 @@ export function Step5Review({ state, onBack }: Props) {
               {scheduleSummary()}
             </span> 
           </Row>
+          {state.step4.endDate && (
+            <Row label="End Date">
+              <span className="flex items-center gap-1.5 truncate">
+                <Calendar className="w-3 h-3" />
+                {new Date(state.step4.endDate).toLocaleString()}
+              </span>
+            </Row>
+          )}
           {state.step4.quietHours && (
             <Row label="Quiet Hours">
               <span className="flex items-center gap-1.5">

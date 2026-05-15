@@ -55,24 +55,29 @@ export function Step4Schedule({ value, onChange, onNext, onBack }: Props) {
   const [quietStart, setQuietStart] = useState(value.quietHours?.start ?? "22:00");
   const [quietEnd, setQuietEnd] = useState(value.quietHours?.end ?? "08:00");
 
+  const [endDateEnabled, setEndDateEnabled] = useState(!!value.endDate);
+  const [endDate, setEndDate] = useState(value.endDate ? value.endDate.slice(0, 16) : "");
+
   const canProceed =
-    mode === "SEND_NOW" ||
-    (mode === "SCHEDULED" && !!scheduledAt);
+    (mode === "SEND_NOW" || (mode === "SCHEDULED" && !!scheduledAt)) &&
+    (!endDateEnabled || !!endDate);
 
   const handleNext = () => {
     const quietHours = quietHoursEnabled
       ? { start: quietStart, end: quietEnd }
       : undefined;
+    const finalEndDate = endDateEnabled && endDate ? new Date(endDate).toISOString() : undefined;
 
     let state: Step4State;
     if (mode === "SEND_NOW") {
-      state = { mode: "SEND_NOW", quietHours };
+      state = { mode: "SEND_NOW", quietHours, endDate: finalEndDate };
     } else {
       state = {
         mode: "SCHEDULED",
         scheduledAt: new Date(scheduledAt).toISOString(),
         timezone,
         quietHours,
+        endDate: finalEndDate,
       };
     }
     onChange(state);
@@ -85,7 +90,7 @@ export function Step4Schedule({ value, onChange, onNext, onBack }: Props) {
   ];
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-5">
       <div>
         <h2 className="text-xl font-bold tracking-tight">Schedule</h2>
         <p className="text-sm text-muted-foreground mt-1">
@@ -100,18 +105,21 @@ export function Step4Schedule({ value, onChange, onNext, onBack }: Props) {
             key={m.id}
             onClick={() => setMode(m.id)}
             className={cn(
-              "flex flex-col items-center gap-1.5 p-3 rounded-xl border text-center transition-all",
+              "flex flex-row items-center gap-3 p-3 rounded-xl border text-left transition-all",
               mode === m.id
                 ? "border-primary bg-primary/5 ring-1 ring-primary/30 text-primary"
                 : "border-border hover:border-primary/40 hover:bg-muted/30 text-muted-foreground",
             )}
           >
-            <div className={cn("w-7 h-7 rounded-lg flex items-center justify-center", mode === m.id ? "bg-primary/15" : "bg-muted")}>
+            <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center shrink-0", mode === m.id ? "bg-primary/15" : "bg-muted")}>
               {m.icon}
             </div>
-            <div>
-              <p className="text-[11px] font-semibold">{m.label}</p>
-              <p className="text-[9px] opacity-70 mt-0.5 leading-tight">{m.desc}</p>
+            <div className="flex-1">
+              <p className="text-sm font-semibold">{m.label}</p>
+              <p className="text-xs opacity-70 mt-0.5 leading-tight">{m.desc}</p>
+            </div>
+            <div className={cn("w-4 h-4 rounded-full border flex items-center justify-center shrink-0", mode === m.id ? "border-primary" : "border-muted-foreground")}>
+              {mode === m.id && <div className="w-2 h-2 bg-primary rounded-full" />}
             </div>
           </button>
         ))}
@@ -119,7 +127,7 @@ export function Step4Schedule({ value, onChange, onNext, onBack }: Props) {
 
       {/* SEND_NOW info */}
       {mode === "SEND_NOW" && (
-        <div className="flex items-start gap-3 p-4 rounded-xl border border-blue-200 bg-blue-50 dark:bg-blue-950/30 dark:border-blue-900 text-sm">
+        <div className="flex items-start gap-3 p-3.5 rounded-xl border border-blue-200 bg-blue-50 dark:bg-blue-950/30 dark:border-blue-900 text-sm">
           <Info className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
           <p className="text-blue-700 dark:text-blue-300">
             The campaign will be queued immediately after you confirm. Delivery begins within seconds, subject to Meta rate limits.
@@ -129,13 +137,13 @@ export function Step4Schedule({ value, onChange, onNext, onBack }: Props) {
 
       {/* SCHEDULED fields */}
       {mode === "SCHEDULED" && (
-        <div className="space-y-4 p-5 rounded-xl border border-border bg-card">
+        <div className="space-y-3 p-4 rounded-xl border border-border bg-card">
           <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
             Scheduled Time
           </h3>
           <div className="grid grid-cols-2 gap-4">
-            <div className="col-span-2 space-y-2">
-              <Label htmlFor="sched-at">Date & Time <span className="text-danger">*</span></Label>
+            <div className="col-span-2 sm:col-span-1 space-y-2">
+              <Label htmlFor="sched-at">Date & Time <span className="text-destructive">*</span></Label>
               <Input
                 id="sched-at"
                 type="datetime-local"
@@ -144,7 +152,7 @@ export function Step4Schedule({ value, onChange, onNext, onBack }: Props) {
                 min={new Date().toISOString().slice(0, 16)}
               />
             </div>
-            <div className="col-span-2 space-y-2">
+            <div className="col-span-2 sm:col-span-1 space-y-2">
               <Label>Timezone</Label>
               <Select value={timezone} onValueChange={(v) => v && setTimezone(v)}>
                 <SelectTrigger>
@@ -161,8 +169,50 @@ export function Step4Schedule({ value, onChange, onNext, onBack }: Props) {
         </div>
       )}
 
+      {/* End Date */}
+      <div className="space-y-3 p-4 rounded-xl border border-border bg-card">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Calendar className="w-4 h-4 text-muted-foreground" />
+            <h3 className="text-sm font-semibold">End Date & Time</h3>
+          </div>
+          <button
+            onClick={() => setEndDateEnabled((v) => !v)}
+            className={cn(
+              "relative w-9 h-5 rounded-full transition-colors shrink-0 cursor-pointer",
+              endDateEnabled ? "bg-primary" : "bg-muted-foreground/30",
+            )}
+          >
+            <span
+              className={cn(
+                "absolute top-0.5 left-0 w-4 h-4 bg-white rounded-full shadow transition-transform",
+                endDateEnabled ? "translate-x-[18px]" : "translate-x-0.5",
+              )}
+            />
+          </button>
+        </div>
+
+        {endDateEnabled && (
+          <div className="pt-2">
+            <div className="space-y-2">
+              <Label htmlFor="end-date" className="text-xs">Stop sending after <span className="text-destructive">*</span></Label>
+              <Input
+                id="end-date"
+                type="datetime-local"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                min={scheduledAt || new Date().toISOString().slice(0, 16)}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground mt-2">
+              The campaign will automatically stop sending messages after this date and time.
+            </p>
+          </div>
+        )}
+      </div>
+
       {/* Quiet hours */}
-      <div className="space-y-3 p-5 rounded-xl border border-border bg-card">
+      <div className="space-y-3 p-4 rounded-xl border border-border bg-card">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Clock className="w-4 h-4 text-muted-foreground" />
@@ -171,14 +221,14 @@ export function Step4Schedule({ value, onChange, onNext, onBack }: Props) {
           <button
             onClick={() => setQuietHoursEnabled((v) => !v)}
             className={cn(
-              "relative w-9 h-5 rounded-full transition-colors",
+              "relative w-9 h-5 rounded-full transition-colors shrink-0 cursor-pointer",
               quietHoursEnabled ? "bg-primary" : "bg-muted-foreground/30",
             )}
           >
             <span
               className={cn(
-                "absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform",
-                quietHoursEnabled ? "translate-x-4" : "translate-x-0.5",
+                "absolute top-0.5 left-0 w-4 h-4 bg-white rounded-full shadow transition-transform",
+                quietHoursEnabled ? "translate-x-[18px]" : "translate-x-0.5",
               )}
             />
           </button>
