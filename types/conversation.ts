@@ -54,6 +54,9 @@ export interface Conversation {
   unreadCount: number;
   windowExpiresAt: string;
   assignedTo?: string;
+  campaignId?: string;
+  campaignName?: string;
+  campaignCategory?: 'MARKETING' | 'UTILITY' | 'AUTHENTICATION';
   tags: string[];
   createdAt: string;
   updatedAt: string;

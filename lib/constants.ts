@@ -12,6 +12,7 @@ export const ROUTES = {
   CAMPAIGNS_NEW: "/campaigns/new",
   CONVERSATIONS: "/conversations",
   FLOWS: "/flows",
+  FLOWS_NEW: "/flows/new",
   CONTACTS: "/contacts",
   CONTACTS_GROUPS: "/contacts/groups",
   CONTACTS_OPT_INS: "/contacts/opt-ins",

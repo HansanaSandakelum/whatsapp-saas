@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import { ArrowLeft, CheckCircle2, Smartphone, Image as ImageIcon, FileVideo, FileText, ExternalLink, MousePointerClick, Phone as PhoneIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import { Step2Audience } from "@/components/campaigns/step2-audience";
 import { Step3Variables } from "@/components/campaigns/step3-variables";
 import { Step4Schedule } from "@/components/campaigns/step4-schedule";
 import { Step5Review } from "@/components/campaigns/step5-review";
+import { PhonePreview } from "@/components/shared/phone-preview";
 import type { Step1State, Step2State, Step4State, VariableMapping } from "@/types/campaign";
 
 export type WizardState = {
@@ -55,6 +56,37 @@ export default function NewCampaignPage() {
   const goTo = (n: 1 | 2 | 3 | 4 | 5) => setStep(n);
   const next = () => setStep((s) => Math.min(s + 1, 5) as 1 | 2 | 3 | 4 | 5);
   const back = () => setStep((s) => Math.max(s - 1, 1) as 1 | 2 | 3 | 4 | 5);
+
+  const renderedHeader = useMemo(() => {
+    if (!template?.header || template.header.type !== "TEXT") return undefined;
+    if (!template.header.hasVariable) return template.header.text;
+    
+    const hm = state.step3["header:{{1}}"];
+    const val = hm?.kind === "literal" ? `<span class="text-emerald-400 font-bold">${hm.value}</span>`
+      : hm?.kind === "contact_field" ? `<span class="text-blue-400 font-bold">[${hm.field}]</span>`
+      : `<span class="text-primary font-bold">{{1}}</span>`;
+    
+    return (template.header.text ?? "").replace("{{1}}", val);
+  }, [template, state.step3]);
+
+  const renderedBody = useMemo(() => {
+    if (!template) return "";
+    let text = template.body;
+    
+    Object.entries(state.step3).forEach(([v, m]) => {
+      if (v.startsWith("header:")) return;
+      
+      let replacement = `<span class="bg-primary/20 text-primary px-1 rounded font-bold">${v}</span>`;
+      if (m.kind === "literal") {
+        replacement = `<span class="bg-emerald-500/20 text-emerald-500 px-1 rounded font-bold border border-emerald-500/30">${m.value}</span>`;
+      } else if (m.kind === "contact_field") {
+        replacement = `<span class="bg-blue-500/20 text-blue-500 px-1 rounded font-bold border border-blue-500/30">[${m.field}]</span>`;
+      }
+      text = text.replaceAll(v, replacement);
+    });
+    
+    return text;
+  }, [template, state.step3]);
 
   return (
     <div className="flex flex-col h-[calc(100vh-64px)] bg-muted/20">
@@ -188,7 +220,13 @@ export default function NewCampaignPage() {
 
             {state.step1.templateId ? (
               template ? (
-                <TemplateBubble template={template} variables={state.step3} />
+                <PhonePreview 
+                  senderName={state.step1.senderId || "Business"}
+                  template={template as any}
+                  renderedHeader={renderedHeader}
+                  renderedBody={renderedBody}
+                  className="w-full scale-[0.9] origin-top"
+                />
               ) : (
                 <div className="w-full aspect-[9/16] rounded-[2rem] border border-border bg-background/50 flex flex-col items-center justify-center p-6 text-center gap-3 animate-pulse">
                   <Smartphone className="w-6 h-6 text-muted-foreground/20" />
@@ -208,87 +246,6 @@ export default function NewCampaignPage() {
             )}
           </div>
         </aside>
-      </div>
-    </div>
-  );
-}
-
-function TemplateBubble({ template, variables }: { template: any; variables: VariableMapping }) {
-  // Simple HTML formatter for WhatsApp body
-  const formatBody = (body: string) => {
-    let text = body
-      .replace(/\*(.+?)\*/g, "<b>$1</b>")
-      .replace(/_(.+?)_/g, "<i>$1</i>")
-      .replace(/~(.+?)~/g, "<s>$1</s>")
-      .replace(/\n/g, "<br />");
-    
-    // Highlight variables with mapped values if present
-    Object.entries(variables).forEach(([v, m]) => {
-      let replacement = `<span class="bg-primary/20 text-primary px-0.5 rounded font-bold">${v}</span>`;
-      if (m.kind === "literal") {
-        replacement = `<span class="bg-success/20 text-success px-0.5 rounded font-bold border border-success/30">${m.value}</span>`;
-      } else if (m.kind === "contact_field") {
-        replacement = `<span class="bg-blue-500/20 text-blue-500 px-0.5 rounded font-bold border border-blue-500/30">[${m.field}]</span>`;
-      }
-      text = text.replaceAll(v, replacement);
-    });
-
-    return text;
-  };
-
-  return (
-    <div className="w-72 bg-[#0B141A] border-4 border-[#222] rounded-[2rem] shadow-2xl overflow-hidden flex flex-col">
-      <div className="h-10 bg-[#1F2C34] flex items-center gap-2 px-3 shrink-0">
-        <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white text-[10px] font-bold">
-          {template.name[0].toUpperCase()}
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-[#E9EDEF] text-[11px] font-medium truncate">{template.name}</p>
-        </div>
-      </div>
-      <div className="p-2 bg-[#0B141A]">
-        <div className="bg-[#1F2C34] rounded-lg rounded-tl-none p-2 relative shadow-sm mt-1">
-          <svg viewBox="0 0 8 13" width="8" height="13" className="absolute -left-[7px] top-0 text-[#1F2C34]">
-            <path fill="currentColor" d="M1.533 2.568 8 11.193V0H2.812C1.042 0 .474 1.156 1.533 2.568z" />
-          </svg>
-          {template.header?.type === "TEXT" && (
-            <p className="text-[#E9EDEF] text-xs font-bold mb-1">
-              {template.header.hasVariable
-                ? (() => {
-                    const hm = variables["header:{{1}}"];
-                    const val = hm?.kind === "literal" ? hm.value
-                      : hm?.kind === "contact_field" ? `[${hm.field}]`
-                      : "{{1}}";
-                    return (template.header.text ?? "").replace("{{1}}", val);
-                  })()
-                : template.header.text}
-            </p>
-          )}
-          {template.header?.type === "IMAGE" && (
-            <div className="w-full h-20 rounded bg-[#2A3942] flex items-center justify-center mb-1.5">
-              <ImageIcon className="w-6 h-6 text-[#8696A0]" />
-            </div>
-          )}
-          <p 
-            className="text-[#E9EDEF] text-[11px] leading-relaxed break-words" 
-            dangerouslySetInnerHTML={{ __html: formatBody(template.body) }}
-          />
-          {template.footer && (
-            <p className="text-[#8696A0] text-[9px] mt-1 italic">{template.footer}</p>
-          )}
-        </div>
-        {template.buttons && template.buttons.length > 0 && (
-          <div className="flex flex-col gap-1 mt-1">
-            {template.buttons.map((btn: any) => (
-              <div key={btn.id} className="bg-[#1F2C34] rounded-lg py-1.5 text-center text-[#53BDEB] text-[10px] font-medium flex items-center justify-center gap-1.5 border border-[#2A3942]">
-                {btn.type === "PHONE" && <PhoneIcon className="w-2.5 h-2.5" />}
-                {btn.type === "URL" && <ExternalLink className="w-2.5 h-2.5" />}
-                {btn.type === "QUICK_REPLY" && <MousePointerClick className="w-2.5 h-2.5" />}
-                {btn.text}
-              </div>
-            ))}
-          </div>
-        )}
       </div>
     </div>
   );

@@ -15,7 +15,9 @@ import type { Template } from "@/types/template";
 
 interface PhonePreviewProps {
   senderName?: string;
+  senderAvatar?: string;
   template?: Template;
+  renderedHeader?: string;
   renderedBody?: string;
   time?: string;
   className?: string;
@@ -23,7 +25,9 @@ interface PhonePreviewProps {
 
 export function PhonePreview({ 
   senderName = "Business", 
+  senderAvatar,
   template, 
+  renderedHeader,
   renderedBody, 
   time = "12:00 PM",
   className
@@ -51,9 +55,13 @@ export function PhonePreview({
       {/* WA Header */}
       <div className="h-14 bg-[#1F2C34] flex items-center gap-3 px-3 shrink-0">
         <ArrowLeft className="w-4 h-4 text-[#8696A0]" />
-        <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-xs font-bold shrink-0">
-          {senderName ? senderName[0].toUpperCase() : "B"}
-        </div>
+        {senderAvatar ? (
+          <img src={senderAvatar} alt={senderName} className="w-8 h-8 rounded-full object-cover shrink-0" />
+        ) : (
+          <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-xs font-bold shrink-0">
+            {senderName ? senderName[0].toUpperCase() : "B"}
+          </div>
+        )}
         <div className="flex-1 min-w-0">
           <p className="text-[#E9EDEF] text-[13px] font-medium truncate">
             {senderName}
@@ -72,12 +80,16 @@ export function PhonePreview({
           </svg>
 
           {/* Header Preview */}
-          {template?.header?.type === "TEXT" && template.header.text && (
-            <p className="text-[#E9EDEF] text-[13px] font-bold mb-1">
-              {template.header.hasVariable
-                ? template.header.text.replace("{{1}}", template.header.exampleValue || "{{1}}")
-                : template.header.text}
-            </p>
+          {renderedHeader ? (
+            <p className="text-[#E9EDEF] text-[13px] font-bold mb-1" dangerouslySetInnerHTML={{ __html: renderedHeader }} />
+          ) : (
+            template?.header?.type === "TEXT" && template.header.text && (
+              <p className="text-[#E9EDEF] text-[13px] font-bold mb-1">
+                {template.header.hasVariable
+                  ? template.header.text.replace("{{1}}", template.header.exampleValue || "{{1}}")
+                  : template.header.text}
+              </p>
+            )
           )}
           {template?.header?.type === "IMAGE" && (
             <div className="w-full h-28 rounded-md bg-[#2A3942] flex items-center justify-center mb-2">

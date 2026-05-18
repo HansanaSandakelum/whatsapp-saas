@@ -20,6 +20,7 @@ import {
   TrendingUp,
   DollarSign,
   Eye,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -195,7 +196,7 @@ export default function CampaignReportsPage() {
                   />
                 </div>
                 <div className="flex items-center gap-2 w-full sm:w-auto bg-card border border-border rounded-lg px-2">
-                  <Calendar className="w-4 h-4 text-muted-foreground shrink-0" />
+                  {/* <Calendar className="w-4 h-4 text-muted-foreground shrink-0" /> */}
                   <Input 
                     type="date" 
                     value={dateFrom}
@@ -209,6 +210,16 @@ export default function CampaignReportsPage() {
                     onChange={(e) => setDateTo(e.target.value)}
                     className="h-9 text-xs w-[120px] border-0 shadow-none focus-visible:ring-0 px-1"
                   />
+                  {(dateFrom || dateTo) && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-7 px-2 text-[10px] font-bold text-primary hover:bg-primary/10 ml-1"
+                      onClick={() => { setDateFrom(""); setDateTo(""); }}
+                    >
+                      Clear
+                    </Button>
+                  )}
                 </div>
               </div>
               <div className="flex items-center gap-2 w-full xl:w-auto justify-end">
