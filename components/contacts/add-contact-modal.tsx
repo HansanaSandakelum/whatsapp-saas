@@ -52,14 +52,18 @@ export function AddContactModal({ children }: AddContactModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {children || (
-          <Button className="gap-2 h-9">
-            <Plus className="w-4 h-4" />
-            Add Contact
-          </Button>
-        )}
-      </DialogTrigger>
+      <DialogTrigger
+        render={
+          children ? (
+            (children as React.ReactElement)
+          ) : (
+            <Button className="gap-2 h-9">
+              <Plus className="w-4 h-4" />
+              Add Contact
+            </Button>
+          )
+        }
+      />
       <DialogContent className="sm:max-w-[480px]">
         <DialogHeader>
           <DialogTitle>Add New Contact</DialogTitle>
@@ -94,7 +98,7 @@ export function AddContactModal({ children }: AddContactModalProps) {
             <Label htmlFor="phone" className="text-xs">Phone Number *</Label>
             <div className="flex gap-2">
               <div className="w-[140px] shrink-0">
-                <Select value={countryCode} onValueChange={setCountryCode}>
+                <Select value={countryCode} onValueChange={(val) => val && setCountryCode(val)}>
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Country" />
                   </SelectTrigger>

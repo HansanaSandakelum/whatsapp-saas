@@ -43,14 +43,18 @@ export function AddGroupModal({ children }: AddGroupModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {children || (
-          <Button className="gap-2 h-9">
-            <Plus className="w-4 h-4" />
-            New Group
-          </Button>
-        )}
-      </DialogTrigger>
+      <DialogTrigger
+        render={
+          children ? (
+            (children as React.ReactElement)
+          ) : (
+            <Button className="gap-2 h-9">
+              <Plus className="w-4 h-4" />
+              New Group
+            </Button>
+          )
+        }
+      />
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Create New Group</DialogTitle>
