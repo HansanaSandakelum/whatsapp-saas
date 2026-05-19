@@ -7,7 +7,7 @@ export type VariableMapping = Record<string, VariableSource>;
 export interface ResolvedAudience { contactIds: string[]; totalIngested: number; duplicatesRemoved: number; optedOutRemoved: number; invalidPhonesRemoved: number; countryBreakdown: Record<string, number>; } 
 export type CampaignCategory = 'MARKETING' | 'UTILITY' | 'AUTHENTICATION'; 
 export type Step1State = { name: string; description?: string; category?: CampaignCategory; senderId: string; templateId: string; }; 
-export type Step2State = | { mode: 'GROUP'; groupIds: string[] } | { mode: 'CSV'; uploadId: string } | { mode: 'FILTER'; rules: any[] }; 
+export type Step2State = | { mode: 'GROUP'; groupIds: string[] } | { mode: 'CSV'; uploadId: string; csvFilename?: string; csvRowCount?: number } | { mode: 'FILTER'; rules: any[] }; 
 export type Step4State = | { mode: 'SEND_NOW'; quietHours?: { start: string; end: string }; endDate?: string } | { mode: 'SCHEDULED'; scheduledAt: string; timezone: string; quietHours?: { start: string; end: string }; endDate?: string }; 
 export interface CampaignListType { id: string; name: string; status: CampaignStatus; scheduledAt: string | null; totalRecipients: number; sentCount: number; failedCount: number; deliveredCount: number; templateName: string; }
 export interface CampaignAudience {

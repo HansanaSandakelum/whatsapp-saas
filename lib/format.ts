@@ -70,3 +70,34 @@ export function formatWindowTimer(expiresAt: Date): {
   }
   return { label: `${diffMins}m`, color: "red" };
 }
+
+/**
+ * Localizes a phone number to Sri Lankan format (+94XXXXXXXXX)
+ * - Strips any non-numeric characters.
+ * - Handles numbers starting with "0" or "+94" or "94".
+ * - Returns format: "+94XXXXXXXXX" (where XXXXXXXXX is the 9-digit Sri Lankan phone number).
+ */
+export function localizePhoneNumber(phone: string): string {
+  // Strip all non-numeric characters except for leading '+'
+  const cleaned = phone.replace(/[^\d+]/g, "");
+  
+  if (!cleaned) return "";
+
+  // If already starts with +94
+  if (cleaned.startsWith("+94")) {
+    const main = cleaned.slice(3);
+    const formattedMain = main.startsWith("0") ? main.slice(1) : main;
+    return `+94${formattedMain}`;
+  }
+
+  // If starts with 94
+  if (cleaned.startsWith("94")) {
+    const main = cleaned.slice(2);
+    const formattedMain = main.startsWith("0") ? main.slice(1) : main;
+    return `+94${formattedMain}`;
+  }
+
+  // Otherwise, handle as a local number
+  const main = cleaned.startsWith("0") ? cleaned.slice(1) : cleaned;
+  return `+94${main}`;
+}

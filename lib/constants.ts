@@ -73,6 +73,7 @@ export const STATUS_COLORS = {
 } as const;
 
 export const COUNTRIES = [
+  { code: "LK", name: "Sri Lanka", flag: "🇱🇰", dialCode: "+94" },
   { code: "US", name: "United States", flag: "🇺🇸", dialCode: "+1" },
   { code: "GB", name: "United Kingdom", flag: "🇬🇧", dialCode: "+44" },
   { code: "IN", name: "India", flag: "🇮🇳", dialCode: "+91" },
@@ -91,6 +92,7 @@ export const COUNTRIES = [
 ] as const;
 
 export const CONVERSATION_RATE_PER_COUNTRY: Record<string, number> = {
+  LK: 0.0195,
   US: 0.0147,
   GB: 0.0319,
   IN: 0.0088,

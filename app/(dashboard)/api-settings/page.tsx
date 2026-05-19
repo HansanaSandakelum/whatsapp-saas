@@ -170,7 +170,7 @@ export default function ApiSettingsPage() {
 
               <div className="space-y-2">
                 <Label htmlFor="phone-number">Phone Number (with country code) <span className="text-danger">*</span></Label>
-                <Input id="phone-number" placeholder="e.g. +1 (555) 000-0000" />
+                <Input id="phone-number" placeholder="e.g. +94 77 123 4567" />
               </div>
             </CardContent>
             <CardFooter className="bg-muted/20 border-t border-border py-3">

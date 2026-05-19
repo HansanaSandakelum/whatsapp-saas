@@ -22,7 +22,6 @@ import {
   ChevronRight,
   MessageCircleCode,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 type NavItem = {
   name: string;
@@ -48,7 +47,7 @@ const navGroups: NavGroup[] = [
         icon: MessageSquare,
         badge: 3,
       },
-      { name: "Contacts", href: ROUTES.CONTACTS, icon: Users },
+      // { name: "Contacts", href: ROUTES.CONTACTS, icon: Users },
     ],
   },
   {
@@ -56,14 +55,14 @@ const navGroups: NavGroup[] = [
     items: [
       { name: "Senders", href: ROUTES.SENDERS, icon: Smartphone },
       { name: "Templates", href: ROUTES.TEMPLATES, icon: FileText },
-      { name: "Flows", href: ROUTES.FLOWS, icon: Workflow },
+      // { name: "Flows", href: ROUTES.FLOWS, icon: Workflow },
     ],
   },
   {
     label: "OPERATE",
     items: [
       { name: "Reports", href: ROUTES.REPORTS, icon: BarChart3 },
-      { name: "Compliance", href: ROUTES.COMPLIANCE, icon: ShieldCheck },
+      // { name: "Compliance", href: ROUTES.COMPLIANCE, icon: ShieldCheck },
       { name: "Billing", href: ROUTES.BILLING, icon: CreditCard },
       { name: "API", href: ROUTES.API, icon: Code2 },
     ],
@@ -169,18 +168,37 @@ export function Sidebar() {
         </Link>
       </div>
 
-      <Button
-        variant="ghost"
-        size="icon"
-        className="absolute -right-3 top-20 w-6 h-6 rounded-full bg-border hover:bg-muted-foreground text-foreground border border-border shadow-sm z-30"
+      {/* ── Premium Sidebar Toggle ── */}
+      <button
         onClick={toggleSidebar}
-      >
-        {sidebarCollapsed ? (
-          <ChevronRight className="w-3 h-3" />
-        ) : (
-          <ChevronLeft className="w-3 h-3" />
+        aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+        className={cn(
+          "group absolute -right-3.5 top-[72px] z-30",
+          "flex items-center justify-center",
+          "w-6 h-6 rounded-full",
+          "bg-gradient-to-br from-primary/90 to-primary",
+          "shadow-[0_0_0_2px_hsl(var(--sidebar-bg)),0_2px_8px_rgba(0,0,0,0.35)]",
+          "ring-1 ring-primary/30",
+          "transition-all duration-200 ease-out",
+          "hover:scale-110 hover:shadow-[0_0_0_2px_hsl(var(--sidebar-bg)),0_4px_16px_rgba(0,0,0,0.4)]",
+          "hover:ring-2 hover:ring-primary/50",
+          "active:scale-95",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2",
         )}
-      </Button>
+      >
+        {/* Animated inner glow */}
+        <span
+          className={cn(
+            "absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300",
+            "bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.2),transparent_70%)]",
+          )}
+        />
+        {sidebarCollapsed ? (
+          <ChevronRight className="relative w-3.5 h-3.5 text-primary-foreground transition-transform duration-200 group-hover:translate-x-px" />
+        ) : (
+          <ChevronLeft className="relative w-3.5 h-3.5 text-primary-foreground transition-transform duration-200 group-hover:-translate-x-px" />
+        )}
+      </button>
     </aside>
   );
 }

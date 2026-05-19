@@ -45,7 +45,7 @@ function generateMockContactReports(campaign: any) {
 
     reports.push({
       id: `rep-${i}`,
-      phone: `+1 (555) ${Math.floor(1000000 + Math.random() * 9000000)}`,
+      phone: `+94 7${Math.floor(Math.random() * 2) === 0 ? '7' : '6'}${Math.floor(1000000 + Math.random() * 8999999)}`,
       status,
       contactData: {
         first_name: firstNames[i % firstNames.length],

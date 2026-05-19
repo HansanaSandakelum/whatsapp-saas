@@ -483,8 +483,7 @@ export default function CreateTemplatePage() {
                         )}
                       </p>
                     </div>
-                    {/* Example value for Meta review — required when header has {{1}} */}
-                    {headerHasVar && null}
+                    {/* Header var example is captured in the unified Variables panel below the body */}
                   </div>
                 ) : (
                   <div className="border-2 border-dashed border-border rounded-xl p-8 text-center bg-muted/20 hover:border-primary/40 transition-colors cursor-pointer">
@@ -568,42 +567,51 @@ export default function CreateTemplatePage() {
                 value={body}
                 onChange={(e) => setBody(e.target.value)}
               />
-              {/* Variable placeholders editor: helps user name slots for mapping */}
-              {varCount(body) > 0 && (
-                <div className="mt-2 p-2 rounded border border-border bg-background/50">
-                  <div className="flex flex-col gap-2">
-                    {Array.from({ length: varCount(body) }, (_, i) => {
-                      const idx = i + 1;
-                      return (
-                        <div key={idx} className="flex items-center gap-3">
-                          <div className="font-mono text-xs w-20">{`{{${idx}}}`}</div>
-                          <input
-                            className="flex-1 h-8 rounded border border-border px-2 text-xs bg-white"
-                            placeholder={`placeholder for {{${idx}}}`}
-                            value={placeholders[idx] ?? ""}
-                            onChange={(e) =>
-                              setPlaceholders((prev) => ({
-                                ...prev,
-                                [idx]: e.target.value,
-                              }))
-                            }
-                          />
-                        </div>
-                      );
-                    })}
-                  </div>
+              {/* Unified variable labels — header var first, then body vars */}
+              {(headerHasVar || varCount(body) > 0) && (
+                <div className="mt-2 p-2 rounded border border-border bg-background/50 space-y-2">
+                  {/* Header variable row */}
+                  {headerHasVar && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 shrink-0">Header</span>
+                      <div className="font-mono text-xs w-8 shrink-0 text-center">{"{{1}}"}</div>
+                      <input
+                        className="flex-1 h-8 rounded border border-border px-2 text-xs bg-background"
+                        placeholder="e.g. John  (Meta review sample)"
+                        value={headerVarExample}
+                        onChange={(e) => setHeaderVarExample(e.target.value)}
+                      />
+                    </div>
+                  )}
+                  {/* Body variable rows */}
+                  {Array.from({ length: varCount(body) }, (_, i) => {
+                    const idx = i + 1;
+                    return (
+                      <div key={idx} className="flex items-center gap-2">
+                        <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-primary/10 text-primary shrink-0">Body</span>
+                        <div className="font-mono text-xs w-8 shrink-0 text-center">{`{{${idx}}}`}</div>
+                        <input
+                          className="flex-1 h-8 rounded border border-border px-2 text-xs bg-background"
+                          placeholder={`e.g. Customer Name`}
+                          value={placeholders[idx] ?? ""}
+                          onChange={(e) =>
+                            setPlaceholders((prev) => ({
+                              ...prev,
+                              [idx]: e.target.value,
+                            }))
+                          }
+                        />
+                      </div>
+                    );
+                  })}
                 </div>
               )}
               <div className="flex justify-between items-center text-[10px] text-muted-foreground">
                 <span>
-                  {varCount(body)} variable{varCount(body) !== 1 ? "s" : ""}{" "}
-                  detected
+                  {varCount(body) + (headerHasVar ? 1 : 0)} variable{(varCount(body) + (headerHasVar ? 1 : 0)) !== 1 ? "s" : ""} total
+                  {headerHasVar && varCount(body) > 0 && ` (1 header · ${varCount(body)} body)`}
                 </span>
-                <span
-                  className={
-                    body.length > 950 ? "text-warning font-medium" : ""
-                  }
-                >
+                <span className={body.length > 950 ? "text-warning font-medium" : ""}>
                   {body.length}/1024
                 </span>
               </div>
@@ -715,7 +723,7 @@ export default function CreateTemplatePage() {
                           <Input
                             placeholder={
                               btn.type === "PHONE"
-                                ? "+1 555 000 0000"
+                                ? "+94 77 123 4567"
                                 : "https://..."
                             }
                             value={btn.value}
@@ -753,7 +761,7 @@ export default function CreateTemplatePage() {
 
             {/* Phone Frame */}
             <PhonePreview 
-              senderName={name || "Business"}
+              senderName="Business"
               template={{
                 body,
                 header: headerType !== "NONE" ? {
@@ -772,24 +780,27 @@ export default function CreateTemplatePage() {
             />
 
             {/* Variable Legend */}
-            {varCount(body) > 0 && (
-              <div className="mt-4 w-full p-3 rounded-lg border border-border bg-background text-xs space-y-1.5">
-                <p className="font-medium text-muted-foreground uppercase tracking-wider text-[10px]">
-                  Variables Detected
+            {(headerHasVar || varCount(body) > 0) && (
+              <div className="mt-4 w-full p-3 rounded-lg border border-border bg-background text-xs space-y-2">
+                <p className="font-medium text-muted-foreground uppercase tracking-wider text-[10px] mb-1">
+                  Variables · {varCount(body) + (headerHasVar ? 1 : 0)} total
                 </p>
+                {/* Header variable row */}
+                {headerHasVar && (
+                  <div className="flex items-center gap-2">
+                    <span className="shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400">Header</span>
+                    <code className="bg-muted rounded px-1.5 py-0.5">{"{{1}}"}</code>
+                    <span className="text-muted-foreground truncate">{headerVarExample || <em className="opacity-50">no example yet</em>}</span>
+                  </div>
+                )}
+                {/* Body variable rows */}
                 {Array.from({ length: varCount(body) }, (_, i) => {
                   const idx = i + 1;
                   return (
-                    <div key={i} className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <code className="bg-primary/10 text-primary rounded px-1.5 py-0.5">{`{{${idx}}}`}</code>
-                        <span className="text-muted-foreground text-[10px]">
-                          {placeholders[idx] ?? "—"}
-                        </span>
-                      </div>
-                      <span className="text-muted-foreground text-[10px]">
-                        → to be mapped at send time
-                      </span>
+                    <div key={i} className="flex items-center gap-2">
+                      <span className="shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded bg-primary/10 text-primary">Body</span>
+                      <code className="bg-muted rounded px-1.5 py-0.5">{`{{${idx}}}`}</code>
+                      <span className="text-muted-foreground truncate">{placeholders[idx] || <em className="opacity-50">unlabelled</em>}</span>
                     </div>
                   );
                 })}

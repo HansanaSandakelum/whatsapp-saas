@@ -24,6 +24,7 @@ import {
   Zap,
   ShieldCheck,
   Tag,
+  DollarSign,
 } from "lucide-react";
 import type { WizardState } from "@/app/(dashboard)/campaigns/new/page";
 import type { Campaign, CampaignAudience, CampaignSchedule } from "@/types/campaign";
@@ -86,6 +87,11 @@ export function Step5Review({ state, onBack }: Props) {
       const total = selectedGroups.reduce((s, g) => s + g.memberCount, 0);
       return `${selectedGroups.length} group${selectedGroups.length !== 1 ? "s" : ""} · ~${formatNumber(total)} contacts`;
     }
+    if (s2.mode === "CSV") {
+      const name = s2.csvFilename ?? "contacts.csv";
+      const count = s2.csvRowCount ?? 0;
+      return `${name} · ~${formatNumber(count)} contacts`;
+    }
     return "CSV upload";
   };
 
@@ -124,8 +130,8 @@ export function Step5Review({ state, onBack }: Props) {
       audience.totalRecipients = selectedGroups.reduce((s, g) => s + g.memberCount, 0);
       audience.estimatedReach = Math.floor(audience.totalRecipients * 0.98);
     } else if (step2?.mode === "CSV") {
-      audience.totalRecipients = 0; // Handled after parsing
-      audience.estimatedReach = 0;
+      audience.totalRecipients = step2.csvRowCount ?? 0;
+      audience.estimatedReach = Math.max(0, Math.floor(audience.totalRecipients * 0.98));
     }
 
     // Construct schedule
@@ -151,9 +157,9 @@ export function Step5Review({ state, onBack }: Props) {
       senderName: sender?.displayName || "Unknown Sender",
       audience,
       costBreakdown: [
-        { country: "United States", countryFlag: "🇺🇸", recipients: audience.estimatedReach, ratePerConversation: 0.0147, subtotal: audience.estimatedReach * 0.0147 }
+        { country: "Sri Lanka", countryFlag: "🇱🇰", recipients: audience.estimatedReach, ratePerConversation: 0.0195, subtotal: audience.estimatedReach * 0.0195 }
       ],
-      totalCost: audience.estimatedReach * 0.0147,
+      totalCost: audience.estimatedReach * 0.0195,
       placeholders: variableEntries.map(([v, s]) => ({
         variable: v.startsWith("header:") ? v.replace("header:", "") : v,
         section: v.startsWith("header:") ? "header" : "body",
@@ -238,11 +244,13 @@ export function Step5Review({ state, onBack }: Props) {
               {template?.name ?? state.step1.templateId}
             </span>
           </Row>
-          {template && (
-            <div className="mt-2 p-2 rounded bg-muted/40 text-[10px] text-foreground border border-border line-clamp-3">
-              {template.body}
-            </div>
-          )}
+          <Row label="Estimated Cost">
+            <span className="flex items-center gap-1.5 truncate">
+              <DollarSign className="w-3 h-3" />
+               100.00
+            </span>
+          </Row>
+         
         </ReviewSection>
 
         {/* Audience */}

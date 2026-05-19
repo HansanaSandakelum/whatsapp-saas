@@ -8,7 +8,6 @@ import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { getTemplateById } from "@/data/templates";
 import { Step1Basics } from "@/components/campaigns/step1-basics";
-import { Step2Audience } from "@/components/campaigns/step2-audience";
 import { Step3Variables } from "@/components/campaigns/step3-variables";
 import { Step4Schedule } from "@/components/campaigns/step4-schedule";
 import { Step5Review } from "@/components/campaigns/step5-review";
@@ -24,10 +23,9 @@ export type WizardState = {
 
 const STEPS = [
   { id: 1, label: "Basics", desc: "Name & template" },
-  { id: 2, label: "Audience", desc: "Who receives it" },
-  { id: 3, label: "Variables", desc: "Personalize content" },
-  { id: 4, label: "Schedule", desc: "When to send" },
-  { id: 5, label: "Review", desc: "Confirm & launch" },
+  { id: 2, label: "Variables", desc: "Upload CSV & personalize" },
+  { id: 3, label: "Schedule", desc: "When to send" },
+  { id: 4, label: "Review", desc: "Confirm & launch" },
 ];
 
 const DEFAULT_STATE: WizardState = {
@@ -38,7 +36,7 @@ const DEFAULT_STATE: WizardState = {
 };
 
 export default function NewCampaignPage() {
-  const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1);
+  const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [state, setState] = useState<WizardState>(DEFAULT_STATE);
 
   const { data: template } = useQuery({
@@ -53,9 +51,9 @@ export default function NewCampaignPage() {
     setState((p) => ({ ...p, step3: s }));
   const updateStep4 = (s: Step4State) => setState((p) => ({ ...p, step4: s }));
 
-  const goTo = (n: 1 | 2 | 3 | 4 | 5) => setStep(n);
-  const next = () => setStep((s) => Math.min(s + 1, 5) as 1 | 2 | 3 | 4 | 5);
-  const back = () => setStep((s) => Math.max(s - 1, 1) as 1 | 2 | 3 | 4 | 5);
+  const goTo = (n: 1 | 2 | 3 | 4) => setStep(n);
+  const next = () => setStep((s) => Math.min(s + 1, 4) as 1 | 2 | 3 | 4);
+  const back = () => setStep((s) => Math.max(s - 1, 1) as 1 | 2 | 3 | 4);
 
   const renderedHeader = useMemo(() => {
     if (!template?.header || template.header.type !== "TEXT") return undefined;
@@ -135,7 +133,7 @@ export default function NewCampaignPage() {
             return (
               <div key={s.id} className="relative">
                 <button
-                  onClick={() => done && goTo(s.id as 1 | 2 | 3 | 4 | 5)}
+                  onClick={() => done && goTo(s.id as 1 | 2 | 3 | 4)}
                   disabled={!done}
                   className={cn(
                     "w-full flex items-start gap-3 py-2.5 px-2 rounded-lg transition-colors text-left",
@@ -180,23 +178,17 @@ export default function NewCampaignPage() {
               />
             )}
             {step === 2 && (
-              <Step2Audience
-                value={state.step2}
-                onChange={updateStep2}
+              <Step3Variables
+                templateId={state.step1.templateId}
+                value={state.step3}
+                onChange={updateStep3}
+                audienceValue={state.step2}
+                onChangeAudience={updateStep2}
                 onNext={next}
                 onBack={back}
               />
             )}
             {step === 3 && (
-              <Step3Variables
-                templateId={state.step1.templateId}
-                value={state.step3}
-                onChange={updateStep3}
-                onNext={next}
-                onBack={back}
-              />
-            )}
-            {step === 4 && (
               <Step4Schedule
                 value={state.step4}
                 onChange={updateStep4}
@@ -204,7 +196,7 @@ export default function NewCampaignPage() {
                 onBack={back}
               />
             )}
-            {step === 5 && <Step5Review state={state} onBack={back} />}
+            {step === 4 && <Step5Review state={state} onBack={back} />}
           </div>
         </main>
 

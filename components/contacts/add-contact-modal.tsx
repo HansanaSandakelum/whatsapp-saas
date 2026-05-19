@@ -9,6 +9,7 @@ import { Plus, Loader2 } from "lucide-react";
 import { COUNTRIES } from "@/lib/constants";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
+import { localizePhoneNumber } from "@/lib/format";
 
 interface AddContactModalProps {
   children?: React.ReactNode;
@@ -22,7 +23,7 @@ export function AddContactModal({ children }: AddContactModalProps) {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [phone, setPhone] = useState("");
-  const [countryCode, setCountryCode] = useState("US");
+  const [countryCode, setCountryCode] = useState("LK");
   const [email, setEmail] = useState("");
   const [tags, setTags] = useState("");
 
@@ -33,10 +34,13 @@ export function AddContactModal({ children }: AddContactModalProps) {
     }
 
     setLoading(true);
-    // Simulate API Call
+    // Simulate API Call & localise phone number
+    const dial = selectedCountry?.dialCode ?? "+94";
+    const localized = localizePhoneNumber(dial + phone);
+    
     await new Promise((resolve) => setTimeout(resolve, 1000));
     setLoading(false);
-    toast.success("Contact added successfully.");
+    toast.success(`Contact added successfully (${localized}).`);
     setOpen(false);
     
     // Reset state
@@ -45,7 +49,7 @@ export function AddContactModal({ children }: AddContactModalProps) {
     setPhone("");
     setEmail("");
     setTags("");
-    setCountryCode("US");
+    setCountryCode("LK");
   };
 
   const selectedCountry = COUNTRIES.find((c) => c.code === countryCode);
@@ -116,7 +120,7 @@ export function AddContactModal({ children }: AddContactModalProps) {
               </div>
               <Input
                 id="phone"
-                placeholder="555-0100"
+                placeholder="77 123 4567"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 className="flex-1 font-mono"
